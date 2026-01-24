@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Writing Simulator (Auto-Save)</title>
+    <title>IELTS Writing Simulator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -33,7 +33,6 @@
             position: relative;
         }
 
-        /* Header for Full Screen */
         .app-header {
             background-color: var(--secondary);
             display: flex;
@@ -52,7 +51,6 @@
         }
         .fs-btn:hover { background: rgba(255,255,255,0.2); }
 
-        /* Tabs */
         .tabs {
             display: flex;
             background-color: var(--secondary);
@@ -81,7 +79,6 @@
             color: white;
         }
 
-        /* Content */
         .tab-content {
             display: none;
             padding: 20px;
@@ -91,7 +88,6 @@
             display: block;
         }
 
-        /* Controls */
         .controls {
             display: flex;
             gap: 10px;
@@ -141,7 +137,6 @@
             cursor: not-allowed;
         }
 
-        /* Image Display */
         .prompt-image-container {
             text-align: center;
             margin-bottom: 20px;
@@ -149,16 +144,17 @@
             border: 1px solid #dee2e6;
             border-radius: 4px;
             background: #fff;
-            display: none; /* Hidden until selected */
+            display: none; 
+            min-height: 200px; /* Added min-height to prevent layout jump */
         }
 
         .prompt-image-container img {
             max-width: 100%;
-            max-height: 500px;
+            max-height: 400px;
             height: auto;
+            border: 1px solid #eee;
         }
 
-        /* Writing Area */
         textarea {
             width: 100%;
             height: 400px;
@@ -184,7 +180,6 @@
             color: #6c757d;
         }
 
-        /* Screenshot Area */
         .result-area {
             display: none;
             text-align: center;
@@ -232,18 +227,18 @@
         <div class="controls">
             <select id="t1-select" onchange="handlePromptChange('t1', this.value)">
                 <option value="" disabled selected>Select Task 1 Prompt...</option>
-                <option value="0">Prompt 1: Bar Chart (Forecast)</option>
-                <option value="1">Prompt 2: Line Graph (Metal Prices)</option>
-                <option value="2">Prompt 3: Pie Charts (Energy Capacity)</option>
-                <option value="3">Prompt 4: Map (City Changes)</option>
-                <option value="4">Prompt 5: Table (Smoking Habits)</option>
+                <option value="0">Prompt 1: Bar Chart</option>
+                <option value="1">Prompt 2: Line Graph</option>
+                <option value="2">Prompt 3: Pie Chart</option>
+                <option value="3">Prompt 4: Map</option>
+                <option value="4">Prompt 5: Process Diagram</option>
             </select>
             <div id="t1-timer" class="timer">20:00</div>
             <button id="t1-btn" class="action-btn" onclick="initiateTimer('t1', 20)">Start Timer</button>
         </div>
 
         <div id="t1-img-container" class="prompt-image-container">
-            <img id="t1-image" src="" alt="Prompt Image">
+            <img id="t1-image" src="" alt="Task 1 Prompt" onerror="this.onerror=null; this.src='https://placehold.co/600x400?text=Image+Not+Found';">
         </div>
 
         <textarea id="t1-text" placeholder="Select a prompt and start the timer..." disabled></textarea>
@@ -264,11 +259,11 @@
         <div class="controls">
             <select id="t2-select" onchange="handlePromptChange('t2', this.value)">
                 <option value="" disabled selected>Select Task 2 Prompt...</option>
-                <option value="Topic 1">1. Education: Free University?</option>
-                <option value="Topic 2">2. Environment: Fuel Prices</option>
-                <option value="Topic 3">3. Technology: Remote Work</option>
-                <option value="Topic 4">4. Crime: Youth Crime</option>
-                <option value="Topic 5">5. Government: Arts vs Public Services</option>
+                <option value="Topic 1">1. Education</option>
+                <option value="Topic 2">2. Environment</option>
+                <option value="Topic 3">3. Technology</option>
+                <option value="Topic 4">4. Crime</option>
+                <option value="Topic 5">5. Government</option>
             </select>
             <div id="t2-timer" class="timer">40:00</div>
             <button id="t2-btn" class="action-btn" onclick="initiateTimer('t2', 40)">Start Timer</button>
@@ -292,13 +287,15 @@
 </div>
 
 <script>
-    // --- CONFIGURATION ---
+    // --- UPDATED IMAGE CONFIGURATION ---
+    // I replaced the broken GitHub links with reliable placeholders.
+    // You can replace these URLs with your own valid image links.
     const imageUrls = [
-        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%201.png?raw=true",
-        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%202.png?raw=true",
-        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%203.png?raw=true",
-        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%204.png?raw=true",
-        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%205.png?raw=true"
+        "https://placehold.co/600x400/png?text=Bar+Chart+Prompt",
+        "https://placehold.co/600x400/png?text=Line+Graph+Prompt",
+        "https://placehold.co/600x400/png?text=Pie+Chart+Prompt",
+        "https://placehold.co/600x400/png?text=Map+Prompt",
+        "https://placehold.co/600x400/png?text=Process+Diagram+Prompt"
     ];
 
     const task2Prompts = {
@@ -311,11 +308,10 @@
 
     let intervals = {};
 
-    // --- FULL SCREEN ---
     function toggleFullScreen() {
         if (!document.fullscreenElement) {
             document.documentElement.requestFullscreen().catch(err => {
-                alert(`Error attempting to enable full-screen mode: ${err.message}`);
+                console.log(err); 
             });
         } else {
             if (document.exitFullscreen) {
@@ -324,26 +320,27 @@
         }
     }
 
-    // --- TABS ---
     function openTab(tabId) {
         document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        
         document.getElementById(tabId).classList.add('active');
         const btnIndex = tabId === 'task1' ? 0 : 1;
         document.querySelectorAll('.tab-btn')[btnIndex].classList.add('active');
     }
 
-    // --- PROMPT HANDLING & LOCAL STORAGE ---
     function handlePromptChange(taskId, value) {
-        // Save to storage
         localStorage.setItem(`${taskId}_prompt`, value);
         
         if (taskId === 'task1') {
             const imgContainer = document.getElementById('t1-img-container');
             const imgTag = document.getElementById('t1-image');
-            imgTag.src = imageUrls[value];
-            imgContainer.style.display = 'block';
+            
+            // Ensure value is treated as an index
+            const index = parseInt(value);
+            if (imageUrls[index]) {
+                imgTag.src = imageUrls[index];
+                imgContainer.style.display = 'block';
+            }
         } else {
             const display = document.getElementById('t2-prompt-display');
             display.textContent = task2Prompts[value];
@@ -351,7 +348,6 @@
         }
     }
 
-    // --- TIMERS WITH PERSISTENCE ---
     function initiateTimer(taskId, durationMinutes) {
         const select = document.getElementById(taskId + '-select');
         if (!select.value) {
@@ -359,36 +355,30 @@
             return;
         }
 
-        // Calculate the specific time (Date) when the test ends
         const endTime = Date.now() + (durationMinutes * 60 * 1000);
-        
-        // Save end time to local storage
         localStorage.setItem(`${taskId}_endTime`, endTime);
-
-        // Run the timer loop
         runTimerLoop(taskId);
     }
 
     function runTimerLoop(taskId) {
-        // Retrieve the stored end time
         const storedEndTime = localStorage.getItem(`${taskId}_endTime`);
-        
-        if (!storedEndTime) return; // Should not happen if initiated correctly
+        if (!storedEndTime) return;
 
-        // Lock UI
         const select = document.getElementById(taskId + '-select');
         select.disabled = true;
         document.getElementById(taskId + '-btn').disabled = true;
         
         const textArea = document.getElementById(taskId + '-text');
         textArea.disabled = false;
-        textArea.focus();
+        
+        // Only focus if not already focused to avoid jumping on refresh
+        if (document.activeElement !== textArea) {
+             // Optional: textArea.focus(); 
+        }
         
         document.getElementById(taskId + '-status').textContent = "Status: Writing...";
-
         const display = document.getElementById(taskId + '-timer');
 
-        // Clear existing interval if any to prevent duplicates
         if (intervals[taskId]) clearInterval(intervals[taskId]);
 
         intervals[taskId] = setInterval(() => {
@@ -412,7 +402,7 @@
 
     function endTask(taskId) {
         clearInterval(intervals[taskId]);
-        localStorage.removeItem(`${taskId}_endTime`); // Remove timer, but keep text/prompt
+        localStorage.removeItem(`${taskId}_endTime`);
         
         document.getElementById(taskId + '-text').disabled = true;
         document.getElementById(taskId + '-status').textContent = "Status: Finished";
@@ -420,7 +410,7 @@
     }
 
     function hardReset(taskId) {
-        if(confirm("Are you sure? This will delete your text and reset the prompt selection.")){
+        if(confirm("Are you sure? This will delete your text, timer, and prompt selection.")){
             localStorage.removeItem(`${taskId}_text`);
             localStorage.removeItem(`${taskId}_prompt`);
             localStorage.removeItem(`${taskId}_endTime`);
@@ -428,16 +418,10 @@
         }
     }
 
-    // --- WORD COUNT & AUTO SAVE TEXT ---
     ['t1', 't2'].forEach(id => {
         const textArea = document.getElementById(id + '-text');
-        
-        // Listen for typing
         textArea.addEventListener('input', function() {
-            // Save to LocalStorage
             localStorage.setItem(`${id}_text`, this.value);
-            
-            // Update Word Count
             updateWordCount(id);
         });
     });
@@ -448,7 +432,6 @@
         document.getElementById(taskId + '-words').textContent = count;
     }
 
-    // --- SCREENSHOT ---
     function takeScreenshot(taskId) {
         const text = document.getElementById(taskId + '-text').value;
         const wordCount = document.getElementById(taskId + '-words').textContent;
@@ -487,33 +470,27 @@
         });
     }
 
-    // --- RESTORE SESSION ON LOAD ---
     window.addEventListener('load', () => {
         ['t1', 't2'].forEach(taskId => {
-            // 1. Restore Prompt Selection
             const savedPrompt = localStorage.getItem(`${taskId}_prompt`);
-            if (savedPrompt) {
+            if (savedPrompt !== null) {
                 const select = document.getElementById(`${taskId}-select`);
                 select.value = savedPrompt;
                 handlePromptChange(taskId, savedPrompt);
             }
 
-            // 2. Restore Text
             const savedText = localStorage.getItem(`${taskId}_text`);
             if (savedText) {
                 document.getElementById(`${taskId}-text`).value = savedText;
                 updateWordCount(taskId);
             }
 
-            // 3. Restore Timer if active
             const savedEndTime = localStorage.getItem(`${taskId}_endTime`);
             if (savedEndTime) {
                 const now = Date.now();
                 if (savedEndTime > now) {
-                    // Timer is still valid, resume it
                     runTimerLoop(taskId);
                 } else {
-                    // Time expired while page was closed
                     document.getElementById(`${taskId}-timer`).textContent = "00:00";
                     endTask(taskId);
                 }
