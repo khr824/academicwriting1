@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Simulator (Full Screen + Images)</title>
+    <title>IELTS Simulator (Fixed Images)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -290,7 +290,7 @@
         </div>
 
         <div id="t1-prompt-area" class="prompt-box">
-            <img id="t1-image" class="prompt-img" src="" alt="Task 1 Prompt">
+            <img id="t1-image" class="prompt-img" src="" alt="Task 1 Prompt" onerror="this.style.display='none'; this.parentElement.innerText = 'Error loading image. Check internet connection.'">
         </div>
 
         <textarea id="t1-text" placeholder="Select a prompt and start the timer..." disabled oninput="handleInput('t1')"></textarea>
@@ -362,13 +362,13 @@
 
     // --- 1. DATA CONFIGURATION ---
     
-    // UPDATED: Using the exact GitHub URLs with ?raw=true
+    // UPDATED: Using raw.githubusercontent.com for reliable embedding
     const task1Images = [
-        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%201.png?raw=true",
-        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%202.png?raw=true",
-        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%203.png?raw=true",
-        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%204.png?raw=true",
-        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%205.png?raw=true"
+        "https://raw.githubusercontent.com/khr824/wp/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%201.png",
+        "https://raw.githubusercontent.com/khr824/wp/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%202.png",
+        "https://raw.githubusercontent.com/khr824/wp/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%203.png",
+        "https://raw.githubusercontent.com/khr824/wp/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%204.png",
+        "https://raw.githubusercontent.com/khr824/wp/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%205.png"
     ];
 
     const task2Prompts = {
@@ -380,7 +380,7 @@
     };
 
     // --- 2. STATE MANAGEMENT ---
-    const STORAGE_KEY = 'ielts_app_ultimate_v1';
+    const STORAGE_KEY = 'ielts_app_fixed_v1';
 
     let state = {
         currentTab: 'task1',
@@ -469,7 +469,9 @@
         area.style.display = 'block';
 
         if (id === 'task1') {
-            document.getElementById('t1-image').src = task1Images[val];
+            const img = document.getElementById('t1-image');
+            img.style.display = 'inline-block'; // Reset in case error hid it
+            img.src = task1Images[val];
         } else {
             document.getElementById('t2-prompt-text').textContent = task2Prompts[val];
         }
