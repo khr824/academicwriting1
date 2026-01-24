@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Simulator (Fixed Images)</title>
+    <title>IELTS Simulator (Final)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -29,7 +29,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(44, 62, 80, 0.95);
+            background: rgba(44, 62, 80, 0.98);
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -360,15 +360,13 @@
         }, 500);
     }
 
-    // --- 1. DATA CONFIGURATION ---
-    
-    // UPDATED: Using raw.githubusercontent.com for reliable embedding
+    // --- 1. DATA CONFIGURATION (UPDATED WITH YOUR URLS) ---
     const task1Images = [
-        "https://raw.githubusercontent.com/khr824/wp/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%201.png",
-        "https://raw.githubusercontent.com/khr824/wp/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%202.png",
-        "https://raw.githubusercontent.com/khr824/wp/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%203.png",
-        "https://raw.githubusercontent.com/khr824/wp/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%204.png",
-        "https://raw.githubusercontent.com/khr824/wp/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%205.png"
+        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%201.png?raw=true",
+        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%202.png?raw=true",
+        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%203.png?raw=true",
+        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%204.png?raw=true",
+        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%205.png?raw=true"
     ];
 
     const task2Prompts = {
@@ -379,8 +377,8 @@
         "topic5": "Government investment in the arts, such as music and theatre, is a waste of money. Governments should invest this money in public services instead. To what extent do you agree?"
     };
 
-    // --- 2. STATE MANAGEMENT ---
-    const STORAGE_KEY = 'ielts_app_fixed_v1';
+    // --- 2. STATE MANAGEMENT (AUTO-SAVE) ---
+    const STORAGE_KEY = 'ielts_app_final_v2';
 
     let state = {
         currentTab: 'task1',
@@ -433,7 +431,6 @@
         setTimeout(() => ind.style.opacity = '0', 1000);
     }
 
-    // Reset Logic
     function hardReset() {
         if(confirm("Are you sure? This will delete all text and reset the timers.")) {
             clearInterval(intervals.t1);
@@ -470,8 +467,8 @@
 
         if (id === 'task1') {
             const img = document.getElementById('t1-image');
-            img.style.display = 'inline-block'; // Reset in case error hid it
-            img.src = task1Images[val];
+            img.style.display = 'inline-block';
+            img.src = task1Images[val]; // Uses the working URL array
         } else {
             document.getElementById('t2-prompt-text').textContent = task2Prompts[val];
         }
