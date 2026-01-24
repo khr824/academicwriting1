@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IELTS Simulator (Full Screen + Images)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #c0392b;
+            --secondary: #2c3e50;
+            --light: #f8f9fa;
+            --save-color: #27ae60;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        /* --- FULL SCREEN OVERLAY --- */
+        #start-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(44, 62, 80, 0.95);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            transition: opacity 0.5s;
+        }
+
+        .start-btn {
+            padding: 20px 40px;
+            font-size: 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            transition: transform 0.2s;
+        }
+
+        .start-btn:hover {
+            transform: scale(1.05);
+            background: #e74c3c;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Status Bar */
+        .status-bar {
+            background: #dfe6e9;
+            padding: 8px 15px;
+            font-size: 0.85rem;
+            color: #636e72;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .save-indicator {
+            color: var(--save-color);
+            font-weight: bold;
+            opacity: 0; 
+            transition: opacity 0.5s;
+        }
+
+        .reset-btn {
+            background: white;
+            border: 1px solid #c0392b;
+            color: #c0392b;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .reset-btn:hover { background: #c0392b; color: white; }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            background-color: var(--secondary);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            background: none;
+            color: #bdc3c7;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .tab-btn.active {
+            background-color: white;
+            color: var(--secondary);
+            border-top: 4px solid var(--primary);
+        }
+
+        .tab-btn:hover:not(.active) {
+            background-color: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* Content Areas */
+        .tab-content {
+            display: none;
+            padding: 20px;
+        }
+        .tab-content.active { display: block; }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--light);
+            padding: 15px;
+            border-radius: 6px;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #dee2e6;
+        }
+
+        select {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ced4da;
+            flex-grow: 1;
+            max-width: 60%;
+            font-size: 0.95rem;
+        }
+
+        .timer {
+            font-family: 'Courier New', monospace;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--secondary);
+            min-width: 90px;
+            text-align: center;
+        }
+        .timer.warning { color: #e74c3c; animation: pulse 1s infinite; }
+        @keyframes pulse { 50% { opacity: 0.5; } }
+
+        button.action-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button.action-btn:disabled { background-color: #95a5a6; cursor: not-allowed; }
+
+        /* Prompt Displays */
+        .prompt-box {
+            background: #fff;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            display: none;
+            text-align: center;
+        }
+        
+        .prompt-text {
+            font-style: italic;
+            color: #444;
+            border-left: 4px solid var(--primary);
+            padding-left: 12px;
+            margin: 0 0 10px 0;
+            line-height: 1.5;
+            text-align: left;
+            background: #f8f9fa;
+            padding: 10px;
+        }
+
+        .prompt-img {
+            max-width: 100%;
+            max-height: 500px;
+            height: auto;
+            display: inline-block;
+            border: 1px solid #ddd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* Text Area */
+        textarea {
+            width: 100%;
+            height: 400px;
+            box-sizing: border-box;
+            padding: 15px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.15rem;
+            line-height: 1.6;
+            resize: vertical;
+        }
+        textarea:disabled { background-color: #f1f3f5; color: #666; }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        /* Screenshot Area */
+        .result-area {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: #f1f3f5;
+            border-radius: 6px;
+        }
+
+        .dl-btn {
+            background-color: var(--secondary);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body onload="initApp()">
+
+<div id="start-overlay">
+    <h1 style="margin-bottom: 10px;">IELTS Writing Simulator</h1>
+    <p style="margin-bottom: 30px; opacity: 0.8;">Distraction-Free Mode</p>
+    <button class="start-btn" onclick="enterFullScreen()">Enter Simulator</button>
+</div>
+
+<div class="container">
+    <div class="status-bar">
+        <span id="save-msg" class="save-indicator">Auto-Saved ✓</span>
+        <button class="reset-btn" type="button" onclick="hardReset()">Reset All Data</button>
+    </div>
+
+    <div class="tabs">
+        <button id="tab-btn-task1" class="tab-btn active" onclick="openTab('task1')">Task 1 (20 Mins)</button>
+        <button id="tab-btn-task2" class="tab-btn" onclick="openTab('task2')">Task 2 (40 Mins)</button>
+    </div>
+
+    <div id="task1" class="tab-content active">
+        <div class="controls">
+            <select id="t1-select" onchange="handleSelectChange('t1')">
+                <option value="" disabled selected>Select Task 1 Prompt...</option>
+                <option value="0">Prompt 1: Bar Chart (Forecast)</option>
+                <option value="1">Prompt 2: Line Graph (Metal Prices)</option>
+                <option value="2">Prompt 3: Pie Charts (Energy Capacity)</option>
+                <option value="3">Prompt 4: Map (City Changes)</option>
+                <option value="4">Prompt 5: Table (Smoking Habits)</option>
+            </select>
+            <div id="t1-timer" class="timer">20:00</div>
+            <button id="t1-btn" class="action-btn" onclick="startTimer('t1')">Start Timer</button>
+        </div>
+
+        <div id="t1-prompt-area" class="prompt-box">
+            <img id="t1-image" class="prompt-img" src="" alt="Task 1 Prompt">
+        </div>
+
+        <textarea id="t1-text" placeholder="Select a prompt and start the timer..." disabled oninput="handleInput('t1')"></textarea>
+        
+        <div class="footer">
+            <span id="t1-status">Status: Waiting</span>
+            <span>Words: <strong id="t1-words">0</strong></span>
+        </div>
+
+        <div id="t1-result" class="result-area">
+            <h3>Time is Up!</h3>
+            <button class="dl-btn" onclick="takeScreenshot('t1')">📸 Download Screenshot</button>
+        </div>
+    </div>
+
+    <div id="task2" class="tab-content">
+        <div class="controls">
+            <select id="t2-select" onchange="handleSelectChange('t2')">
+                <option value="" disabled selected>Select Task 2 Prompt...</option>
+                <option value="topic1">1. Education: Free University?</option>
+                <option value="topic2">2. Environment: Fuel Prices</option>
+                <option value="topic3">3. Technology: Remote Work</option>
+                <option value="topic4">4. Crime: Youth Crime</option>
+                <option value="topic5">5. Government: Arts vs Public Services</option>
+            </select>
+            <div id="t2-timer" class="timer">40:00</div>
+            <button id="t2-btn" class="action-btn" onclick="startTimer('t2')">Start Timer</button>
+        </div>
+
+        <div id="t2-prompt-area" class="prompt-box">
+            <p id="t2-prompt-text" class="prompt-text"></p>
+        </div>
+
+        <textarea id="t2-text" placeholder="Select a prompt and start the timer..." disabled oninput="handleInput('t2')"></textarea>
+        
+        <div class="footer">
+            <span id="t2-status">Status: Waiting</span>
+            <span>Words: <strong id="t2-words">0</strong></span>
+        </div>
+
+        <div id="t2-result" class="result-area">
+            <h3>Time is Up!</h3>
+            <button class="dl-btn" onclick="takeScreenshot('t2')">📸 Download Screenshot</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 0. FULL SCREEN LOGIC ---
+    function enterFullScreen() {
+        const overlay = document.getElementById('start-overlay');
+        const docEl = document.documentElement;
+
+        if (docEl.requestFullscreen) {
+            docEl.requestFullscreen();
+        } else if (docEl.mozRequestFullScreen) { /* Firefox */
+            docEl.mozRequestFullScreen();
+        } else if (docEl.webkitRequestFullscreen) { /* Chrome, Safari and Opera */
+            docEl.webkitRequestFullscreen();
+        } else if (docEl.msRequestFullscreen) { /* IE/Edge */
+            docEl.msRequestFullscreen();
+        }
+
+        overlay.style.opacity = '0';
+        setTimeout(() => {
+            overlay.style.display = 'none';
+        }, 500);
+    }
+
+    // --- 1. DATA CONFIGURATION ---
+    
+    // UPDATED: Using the exact GitHub URLs with ?raw=true
+    const task1Images = [
+        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%201.png?raw=true",
+        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%202.png?raw=true",
+        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%203.png?raw=true",
+        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%204.png?raw=true",
+        "https://github.com/khr824/wp/blob/f4fbae73ee6118905ce46eb9060beada2a16a45e/image%205.png?raw=true"
+    ];
+
+    const task2Prompts = {
+        "topic1": "Some people believe that university education should be free for everyone. Others think that students should pay for their education. Discuss both views and give your opinion.",
+        "topic2": "The best way to solve the world's environmental problems is to increase the price of fuel. To what extent do you agree or disagree?",
+        "topic3": "Nowadays, many people work from home using modern technology. Discuss the advantages and disadvantages of this trend.",
+        "topic4": "In many countries, the amount of crime committed by teenagers is increasing. What do you think are the causes of this? What solutions can you suggest?",
+        "topic5": "Government investment in the arts, such as music and theatre, is a waste of money. Governments should invest this money in public services instead. To what extent do you agree?"
+    };
+
+    // --- 2. STATE MANAGEMENT ---
+    const STORAGE_KEY = 'ielts_app_ultimate_v1';
+
+    let state = {
+        currentTab: 'task1',
+        t1: { active: false, finished: false, time: 1200, text: '', promptVal: '' },
+        t2: { active: false, finished: false, time: 2400, text: '', promptVal: '' }
+    };
+
+    let intervals = { t1: null, t2: null };
+
+    function initApp() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                state = { ...state, ...JSON.parse(saved) };
+            } catch(e) { console.error("Data corrupted, using defaults."); }
+        }
+
+        openTab(state.currentTab);
+        restoreTask('t1');
+        restoreTask('t2');
+    }
+
+    function restoreTask(id) {
+        const data = state[id];
+        const select = document.getElementById(id + '-select');
+        
+        if (data.promptVal) {
+            select.value = data.promptVal;
+            showPromptVisuals(id, data.promptVal);
+        }
+        
+        document.getElementById(id + '-text').value = data.text;
+        updateWordCount(id);
+        updateTimerUI(id, data.time);
+
+        if (data.finished) {
+            finishTask(id, false);
+        } else if (data.active) {
+            lockControls(id);
+            document.getElementById(id + '-text').disabled = false;
+            document.getElementById(id + '-status').textContent = "Status: Resumed...";
+            runTimer(id);
+        }
+    }
+
+    function saveData() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        const ind = document.getElementById('save-msg');
+        ind.style.opacity = '1';
+        setTimeout(() => ind.style.opacity = '0', 1000);
+    }
+
+    // Reset Logic
+    function hardReset() {
+        if(confirm("Are you sure? This will delete all text and reset the timers.")) {
+            clearInterval(intervals.t1);
+            clearInterval(intervals.t2);
+            localStorage.removeItem(STORAGE_KEY);
+            window.location.reload();
+        }
+    }
+
+    // --- 3. UI LOGIC ---
+
+    function openTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(tabId).classList.add('active');
+        document.getElementById('tab-btn-' + tabId).classList.add('active');
+        
+        state.currentTab = tabId;
+        saveData();
+    }
+
+    function handleSelectChange(id) {
+        const val = document.getElementById(id + '-select').value;
+        state[id].promptVal = val;
+        showPromptVisuals(id, val);
+        saveData();
+    }
+
+    function showPromptVisuals(id, val) {
+        if (val === "" || val === null) return;
+        const area = document.getElementById(id + '-prompt-area');
+        area.style.display = 'block';
+
+        if (id === 'task1') {
+            document.getElementById('t1-image').src = task1Images[val];
+        } else {
+            document.getElementById('t2-prompt-text').textContent = task2Prompts[val];
+        }
+    }
+
+    function handleInput(id) {
+        state[id].text = document.getElementById(id + '-text').value;
+        updateWordCount(id);
+        saveData();
+    }
+
+    function updateWordCount(id) {
+        const text = document.getElementById(id + '-text').value || "";
+        const count = text.trim().split(/\s+/).filter(w => w.length > 0).length;
+        document.getElementById(id + '-words').textContent = count;
+    }
+
+    // --- 4. TIMER LOGIC ---
+
+    function startTimer(id) {
+        const select = document.getElementById(id + '-select');
+        if (!select.value) {
+            alert("Please select a prompt first.");
+            return;
+        }
+
+        state[id].active = true;
+        saveData();
+
+        lockControls(id);
+        document.getElementById(id + '-text').disabled = false;
+        document.getElementById(id + '-text').focus();
+        document.getElementById(id + '-status').textContent = "Status: Writing...";
+        
+        runTimer(id);
+    }
+
+    function runTimer(id) {
+        if (intervals[id]) clearInterval(intervals[id]);
+        
+        intervals[id] = setInterval(() => {
+            if (state[id].time > 0) {
+                state[id].time--;
+                updateTimerUI(id, state[id].time);
+                saveData(); 
+            } else {
+                finishTask(id, true);
+            }
+        }, 1000);
+    }
+
+    function updateTimerUI(id, seconds) {
+        let m = Math.floor(seconds / 60);
+        let s = seconds % 60;
+        m = m < 10 ? "0" + m : m;
+        s = s < 10 ? "0" + s : s;
+        
+        const el = document.getElementById(id + '-timer');
+        el.textContent = `${m}:${s}`;
+        
+        if (seconds < 60) el.classList.add('warning');
+        else el.classList.remove('warning');
+    }
+
+    function finishTask(id, shouldSave) {
+        clearInterval(intervals[id]);
+        state[id].active = false;
+        state[id].finished = true;
+        if(shouldSave) saveData();
+
+        document.getElementById(id + '-timer').textContent = "00:00";
+        document.getElementById(id + '-text').disabled = true;
+        document.getElementById(id + '-status').textContent = "Status: Finished";
+        document.getElementById(id + '-result').style.display = 'block';
+        lockControls(id);
+    }
+
+    function lockControls(id) {
+        document.getElementById(id + '-select').disabled = true;
+        document.getElementById(id + '-btn').disabled = true;
+    }
+
+    // --- 5. SCREENSHOT LOGIC ---
+
+    function takeScreenshot(id) {
+        const text = document.getElementById(id + '-text').value;
+        const wordCount = document.getElementById(id + '-words').textContent;
+        let promptContent = "";
+
+        if (id === 'task1') {
+            promptContent = "(See chart in simulator)";
+        } else {
+            promptContent = document.getElementById('t2-prompt-text').textContent;
+        }
+
+        const div = document.createElement('div');
+        div.style.width = '800px';
+        div.style.padding = '40px';
+        div.style.backgroundColor = 'white';
+        div.style.color = '#333';
+        div.style.position = 'absolute';
+        div.style.top = '-9999px';
+        div.style.fontFamily = 'Arial, sans-serif';
+
+        div.innerHTML = `
+            <h2 style="color:#2c3e50; border-bottom: 2px solid #c0392b; padding-bottom:10px;">IELTS ${id === 'task1' ? 'Task 1' : 'Task 2'} Submission</h2>
+            <div style="background:#f8f9fa; padding:15px; margin-bottom:20px; border-left: 4px solid #c0392b; color:#555;">
+                <strong>Prompt:</strong> ${promptContent}
+            </div>
+            <div style="white-space: pre-wrap; font-family: 'Times New Roman', serif; font-size: 1.2rem; line-height: 1.6;">${text}</div>
+            <hr style="margin-top:30px; border:0; border-top:1px solid #ddd;">
+            <p style="text-align:right; font-weight:bold; color:#7f8c8d;">Word Count: ${wordCount}</p>
+        `;
+
+        document.body.appendChild(div);
+
+        html2canvas(div).then(canvas => {
+            document.body.removeChild(div);
+            const link = document.createElement('a');
+            link.download = `IELTS_${id}_MyWork.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+        });
+    }
+</script>
+
+</body>
+</html>
