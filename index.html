@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IELTS Writing Simulator</title>
+    <title>IELTS Academic Writing Simulator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root {
@@ -31,6 +31,22 @@
             display: flex;
             flex-direction: column;
             min-height: 80vh;
+        }
+
+        /* --- New Main Header Styles --- */
+        .app-header {
+            padding: 25px 20px;
+            text-align: center;
+            background-color: white;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .app-header h1 {
+            margin: 0;
+            color: var(--secondary);
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         /* --- Full Screen Overlay Styles --- */
@@ -75,7 +91,6 @@
             color: var(--primary); 
         }
 
-        /* Secondary button style (Normal Mode) */
         .fs-btn.secondary {
             background-color: transparent;
             border: 2px solid white;
@@ -241,7 +256,7 @@
 <body>
 
 <div id="start-overlay">
-    <h1>IELTS Writing Simulator</h1>
+    <h1>IELTS Academic Writing Simulator</h1>
     <p style="max-width: 600px; margin-bottom: 10px; font-size: 1.1rem;">
         Your progress is saved automatically. If you refresh, the timer and your text will be restored.
     </p>
@@ -256,6 +271,10 @@
 </div>
 
 <div class="container">
+    <div class="app-header">
+        <h1>IELTS Academic Writing Simulator</h1>
+    </div>
+
     <div class="tabs">
         <button class="tab-btn active" onclick="openTab('task1')">Task 1 (20 Mins)</button>
         <button class="tab-btn" onclick="openTab('task2')">Task 2 (40 Mins)</button>
